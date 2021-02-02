@@ -25,6 +25,7 @@ import model.Language;
 import model.Translation;
 import view.component.TRButton;
 import view.component.TRCheckBox;
+import view.component.TRTextField;
 import view.util.TRColor;
 import view.util.TRLocalizator;
 import view.util.TRMessage;
@@ -41,6 +42,12 @@ public class MainView extends JFrame {
 	private final JLabel lblDocument = new JLabel(MainView.LOC.getRes("lblDocument"));
 	private final TRButton btnDocument = new TRButton(MainView.LOC.getRes("btnLoad"));
 	private final JLabel lblDocumentFile = new JLabel();
+	private final JLabel lblTable = new JLabel(MainView.LOC.getRes("lblTable"));
+	private final TRTextField txtTable = new TRTextField();
+	private final JLabel lblColumnApertura = new JLabel(MainView.LOC.getRes("lblColumnApertura"));
+	private final TRTextField txtColumnApertura = new TRTextField();
+	private final JLabel lblColumnPolicy = new JLabel(MainView.LOC.getRes("lblColumnPolicy"));
+	private final TRTextField txtColumnPolicy = new TRTextField();
 	private final TRCheckBox chkQuery = new TRCheckBox(MainView.LOC.getRes("chkQuery"));
 	private final TRCheckBox chkPolicy = new TRCheckBox(MainView.LOC.getRes("chkPolicy"));
 	private final TRButton btnTransform = new TRButton(TRResource.getStartImage());
@@ -66,7 +73,7 @@ public class MainView extends JFrame {
 
 	private void setup() {
 		this.setTitle(MainView.LOC.getRes("title"));
-		final Dimension dimension = new Dimension(510, 510);// Toolkit.getDefaultToolkit().getScreenSize();
+		final Dimension dimension = new Dimension(510, 610);// Toolkit.getDefaultToolkit().getScreenSize();
 		this.setSize(dimension);
 		this.setPreferredSize(dimension);
 		// this.setExtendedState(Frame.MAXIMIZED_BOTH);
@@ -87,6 +94,12 @@ public class MainView extends JFrame {
 		this.add(this.lblDocument);
 		this.add(this.btnDocument);
 		this.add(this.lblDocumentFile);
+		this.add(this.lblTable);
+		this.add(this.txtTable);
+		this.add(this.lblColumnApertura);
+		this.add(this.txtColumnApertura);
+		this.add(this.lblColumnPolicy);
+		this.add(this.txtColumnPolicy);
 		this.add(this.chkQuery);
 		this.add(this.chkPolicy);
 		this.add(this.btnTransform);
@@ -112,6 +125,15 @@ public class MainView extends JFrame {
 		y += 50;
 		this.chkQuery.setBounds(x, y, 200, height);
 		this.chkPolicy.setBounds(x + 200, y, 200, height);
+		y += 40;
+		this.lblTable.setBounds(x, y, 100, height);
+		this.txtTable.setBounds(130, y, 200, height);
+		y += margin;
+		this.lblColumnApertura.setBounds(x, y, 100, height);
+		this.txtColumnApertura.setBounds(130, y, 200, height);
+		y += margin;
+		this.lblColumnPolicy.setBounds(x, y, 100, height);
+		this.txtColumnPolicy.setBounds(130, y, 200, height);
 		y += 50;
 		this.btnTransform.setBounds(x, y, 35, height + 10);
 		this.lblTransform.setBounds(x + 45, y, 200, height + 10);
@@ -128,6 +150,9 @@ public class MainView extends JFrame {
 		this.lblAuthor.setBounds(dimension.width - 150, y, 120, height);
 
 		this.lblDocument.setToolTipText(MainView.LOC.getRes("lblDocumentToolTip"));
+		this.lblTable.setToolTipText(MainView.LOC.getRes("lblTableToolTip"));
+		this.lblColumnApertura.setToolTipText(MainView.LOC.getRes("lblColumnAperturaToolTip"));
+		this.lblColumnPolicy.setToolTipText(MainView.LOC.getRes("lblColumnPolicyToolTip"));
 		this.chkQuery.setToolTipText(MainView.LOC.getRes("chkQueryToolTip"));
 		this.chkPolicy.setToolTipText(MainView.LOC.getRes("chkPolicyToolTip"));
 		this.lblTransform.setToolTipText(MainView.LOC.getRes("lblTransformToolTip"));
@@ -152,6 +177,13 @@ public class MainView extends JFrame {
 			this.updateGraphics();
 		});
 		this.btnExport.addActionListener(e -> this.btnExportActionPerformed());
+
+		this.chkQuery.addChangeListener(e -> {
+			this.updateGraphics();
+		});
+		this.chkPolicy.addChangeListener(e -> {
+			this.updateGraphics();
+		});
 	}
 
 	private void init() {
@@ -165,6 +197,10 @@ public class MainView extends JFrame {
 	private void updateGraphics() {
 		this.chkQuery.setEnabled(this.documentFile != null);
 		this.chkPolicy.setEnabled(this.documentFile != null);
+		this.txtTable.setEnabled(this.documentFile != null && this.chkQuery.isSelected());
+		this.txtColumnApertura.setEnabled(this.documentFile != null && this.chkQuery.isSelected());
+		this.txtColumnPolicy
+				.setEnabled(this.documentFile != null && this.chkQuery.isSelected() && this.chkPolicy.isSelected());
 		this.btnTransform.setEnabled(this.documentFile != null);
 		this.btnExportPath.setEnabled(this.exportRows != null && !this.exportRows.isEmpty());
 		this.btnExport.setEnabled(this.exportFile != null);
@@ -253,6 +289,21 @@ public class MainView extends JFrame {
 		if (!MainView.checkFile(this.documentFile, false)) {
 			TRMessage.showErrDialog(this, MainView.LOC.getRes("errDocumentFile"));
 			return false;
+		}
+
+		if (this.chkQuery.isSelected()) {
+			if (this.txtTable.isEmpty()) {
+				TRMessage.showErrDialog(this, MainView.LOC.getRes("errTable"));
+				return false;
+			}
+			if (this.txtColumnApertura.isEmpty()) {
+				TRMessage.showErrDialog(this, MainView.LOC.getRes("errColumnApertura"));
+				return false;
+			}
+			if (this.chkPolicy.isSelected() && this.txtColumnPolicy.isEmpty()) {
+				TRMessage.showErrDialog(this, MainView.LOC.getRes("errColumnPolicy"));
+				return false;
+			}
 		}
 
 		return true;
@@ -393,8 +444,8 @@ public class MainView extends JFrame {
 	private boolean importData(final ImportedRow importedRow, final boolean isApertura, final int pos,
 			final ExportRow exportRow, final String id) {
 		final String value = importedRow.getStringAt(pos);
-		final String column = isApertura ? "apertura2020_periodo_" : "apertura2020_cancellazione_";
-		final String queryStart = "UPDATE bic_hotels SET ";
+		final String column = isApertura ? this.txtColumnApertura.getText() : this.txtColumnPolicy.getText();
+		final String queryStart = "UPDATE " + this.txtTable.getText() + " SET ";
 		final String queryEnd = " WHERE ID = " + id + ";";
 
 		exportRow.addCell(value);
