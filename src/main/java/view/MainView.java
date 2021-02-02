@@ -250,6 +250,8 @@ public class MainView extends JFrame {
 
 		this.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
 		ImportCore.importRows(this, this.documentFile);
+		this.setCursor(Cursor.getDefaultCursor());
+		this.updateGraphics();
 	}
 
 	private void btnExportActionPerformed() {
@@ -433,13 +435,11 @@ public class MainView extends JFrame {
 
 		TRMessage.showInfoDialog(this, MainView.LOC.getRes("infNImported", importedCount));
 
-		if (!notImported.isEmpty()) {
+		if (notImportedCount > 0) {
 			TRMessage.showWarnDialog(this, MainView.LOC.getRes("wrnNotImported", notImportedCount, notImported));
 		}
 
 		this.exportRows = _exportRows;
-		this.setCursor(Cursor.getDefaultCursor());
-		this.updateGraphics();
 	}
 
 	private boolean importData(final ImportedRow importedRow, final boolean isApertura, final int pos,
